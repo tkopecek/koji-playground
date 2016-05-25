@@ -7,6 +7,7 @@
 from koji.context import context
 from koji.plugin import callbacks, callback, ignore_error
 import ConfigParser
+import koji
 import logging
 import qpid.messaging
 import qpid.messaging.transports
