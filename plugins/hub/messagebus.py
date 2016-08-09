@@ -68,8 +68,23 @@ class Connection(qpid.messaging.Connection):
             timeout = self._timeout
         return qpid.messaging.Connection._wait(self, predicate, timeout)
 
+
+def get_config():
+    global config
+    if config:
+        return config
+
+    config = ConfigParser.SafeConfigParser()
+    config.read(CONFIG_FILE)
+    if not config.has_option('broker', 'timeout'):
+        config.set('broker', 'timeout', '60')
+    if not config.has_option('broker', 'heartbeat'):
+        config.set('broker', 'heartbeat', '60')
+    return config
+
+
 def get_sender():
-    global config, session, target
+    global session, target
     if session and target:
         try:
             return session.sender(target)
@@ -78,12 +93,7 @@ def get_sender():
             session = None
             target = None
 
-    config = ConfigParser.SafeConfigParser()
-    config.read(CONFIG_FILE)
-    if not config.has_option('broker', 'timeout'):
-        config.set('broker', 'timeout', '60')
-    if not config.has_option('broker', 'heartbeat'):
-        config.set('broker', 'heartbeat', '60')
+    config = get_config()
 
     if config.getboolean('broker', 'ssl'):
         url = 'amqps://'
@@ -204,7 +214,6 @@ def get_message_headers(msgtype, *args, **kws):
             and c != 'postCommit'])
 @ignore_error
 def prep_message(cbtype, *args, **kws):
-    global config
     if cbtype.startswith('post'):
         msgtype = cbtype[4:]
     else:
@@ -214,6 +223,7 @@ def prep_message(cbtype, *args, **kws):
     if args:
         data['args'] = list(args)
 
+    config = get_config()
     exchange_type = config.get('exchange', 'type')
     if exchange_type == 'topic':
         subject = get_message_subject(msgtype, *args, **kws)
@@ -234,7 +244,7 @@ def prep_message(cbtype, *args, **kws):
 def send_messages(cbtype, *args, **kws):
     '''Send the messages cached by prep_message'''
 
-    global config
+    config = get_config()
     messages = getattr(context, 'messagebus_plugin_messages', [])
     if not messages:
         return
