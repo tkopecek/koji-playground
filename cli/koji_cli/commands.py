@@ -2992,19 +2992,10 @@ def anon_handle_list_builds(goptions, session, args):
     data = sorted(data, key=lambda b: [b.get(k) for k in options.sort_key],
                         reverse=options.reverse)
 
-    if options.type == 'maven' and options.buildid:
-        fmt = "%(nvr)-55s  %(group_id)-20s  %(artifact_id)-20s  %(owner_name)s"
-    elif options.type == 'maven':
-        fmt = "%(nvr)-55s  %(maven_group_id)-20s  %(maven_artifact_id)-20s  %(owner_name)s"
-    else:
-        fmt = "%(nvr)-55s  %(owner_name)s"
+    fmt = "%(nvr)-55s  %(owner_name)s"
     if not options.quiet:
-        if options.type == 'maven':
-            print("%-55s  %-20s  %-20s  %s" % ("Build", "Group Id", "Artifact Id", "Built by"))
-            print("%s  %s  %s  %s" % ("-"*55, "-"*20, "-"*20, "-"*16))
-        else:
-            print("%-55s  %s" % ("Build", "Built by"))
-            print("%s  %s" % ("-"*55, "-"*16))
+        print("%-55s  %s" % ("Build", "Built by"))
+        print("%s  %s" % ("-"*55, "-"*16))
 
     for build in data:
         print(fmt % build)
