@@ -2881,16 +2881,18 @@ def anon_handle_list_builds(goptions, session, args):
     parser.add_option("--package", help=_("List builds for this package"))
     parser.add_option("--buildid", help=_("List specific build from ID or nvr"))
     parser.add_option("--before",
-                      help=_("List builds built before this time. 'YYYY-MM-DD HH24:MI:SS' ISO format"))
+                      help=_("List builds built before this time"))
     parser.add_option("--after",
-                      help=_("List builds built after this time. 'YYYY-MM-DD HH24:MI:SS' ISO format"))
+                      help=_("List builds built after this time"))
     parser.add_option("--state", help=_("List builds in this state"))
     parser.add_option("--type", help=_("List builds of this type."))
     parser.add_option("--prefix", help=_("Only list packages starting with this prefix"))
     parser.add_option("--owner", help=_("List builds built by this owner"))
     parser.add_option("--volume", help=_("List builds by volume ID"))
-    parser.add_option("--descending", action="store_true", default=False,
-                help=_("Print the list in descending order"))
+    parser.add_option("-k", "--sort-key", action="append", metavar='FIELD',
+                default=[], help=_("Sort the list by the named field"))
+    parser.add_option("-r", "--reverse", action="store_true", default=False,
+                help=_("Print the list in reverse order"))
     parser.add_option("--quiet", action="store_true", default=goptions.quiet,
                 help=_("Do not print the header information"))
     (options, args) = parser.parse_args(args)
@@ -2933,7 +2935,7 @@ def anon_handle_list_builds(goptions, session, args):
             if volumeID is None:
                 parser.error(_("Invalid volume"))
                 assert False  # pragma: no cover
-            opts['volumeID'] = volume
+            opts['volumeID'] = volumeID
     if options.state:
         try:
             state = int(options.state)
@@ -2985,7 +2987,10 @@ def anon_handle_list_builds(goptions, session, args):
         else:
             parser.error(_("Filter must be provided for list"))
             assert False  # pragma: no cover
-    sorteddata = sorted(data, key=lambda k: k['nvr'], reverse=options.descending)
+    if not options.sort_key:
+        options.sort_key = ['build_id']
+    data = sorted(data, key=lambda b: [b.get(k) for k in options.sort_key],
+                        reverse=options.reverse)
 
     if options.type == 'maven' and options.buildid:
         fmt = "%(nvr)-55s  %(group_id)-20s  %(artifact_id)-20s  %(owner_name)s"
@@ -3001,9 +3006,8 @@ def anon_handle_list_builds(goptions, session, args):
             print("%-55s  %s" % ("Build", "Built by"))
             print("%s  %s" % ("-"*55, "-"*16))
 
-    output = [ fmt % x for x in sorteddata ]
-    for line in output:
-        print(line)
+    for build in data:
+        print(fmt % build)
 
 
 def anon_handle_rpminfo(goptions, session, args):
