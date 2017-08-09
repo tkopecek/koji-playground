@@ -5265,6 +5265,7 @@ class CG_Importer(object):
                 'cgs': self.cgs,
                 'volume': 'DEFAULT',  # ???
                 'cg_import': True,
+                }
         vol = check_volume_policy(build, strict=False)
         if vol:
             self.buildinfo['volume_id'] = vol['id']
