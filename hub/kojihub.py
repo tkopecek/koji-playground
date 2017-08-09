@@ -1526,7 +1526,6 @@ def _direct_tag_build(tag, build, user, force=False):
     insert.make_create(user_id=user_id)
     insert.execute()
     koji.plugin.run_callbacks('postTag', tag=tag, build=build, user=user, force=force)
-    apply_volume_policy(build, strict=False)
 
 
 def _untag_build(tag, build, user_id=None, strict=True, force=False):
@@ -1563,7 +1562,6 @@ def _direct_untag_build(tag, build, user, strict=True, force=False):
         nvr = "%(name)s-%(version)s-%(release)s" % build
         raise koji.TagError("build %s not in tag %s" % (nvr, tag['name']))
     koji.plugin.run_callbacks('postUntag', tag=tag, build=build, user=user, force=force, strict=strict)
-    apply_volume_policy(build, strict=False)
 
 
 # tag-group operations
@@ -5201,6 +5199,7 @@ class CG_Importer(object):
         koji.plugin.run_callbacks('postImport', type='cg', metadata=metadata,
                                   directory=directory, build=self.buildinfo)
 
+        # importing should probably be more subtle about volume
         apply_volume_policy(self.buildinfo, strict=False)
         return self.buildinfo
 
