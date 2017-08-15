@@ -5001,7 +5001,6 @@ def import_build(srpm, rpms, brmap=None, task_id=None, build_id=None, logs=None)
     bimp.do_import()
 
 
-# TODO: eventually combine this with CG_Importer
 class RPMBuildImporter(object):
 
     def __init__(self, srpm, rpms, brmap, task_id, build_id, logs):
